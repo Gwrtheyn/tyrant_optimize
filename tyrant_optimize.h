@@ -326,7 +326,11 @@ public:
 		m_your_bg_skills_(your_bg_skills_),
 		m_enemy_bg_skills_(enemy_bg_skills_)
 	{
-		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,m_quest_,m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
+		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,
+#ifndef NQUEST
+								m_quest_,
+#endif
+			m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
 	};
 public:
 	Process* GetProcess()
@@ -337,7 +341,11 @@ public:
 	{
 		if (m_pro != NULL)
 			delete m_pro;
-		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,m_quest_,m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
+		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,
+#ifndef NQUEST
+								m_quest_,
+#endif
+			m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
 		return m_pro;
 	};
 };
