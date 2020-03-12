@@ -3035,18 +3035,14 @@ FinalResults<long double> run(int argc, char** argv)
 		proc_decks.erase(proc_decks.begin()+1,proc_decks.end());
 	}
 	Process p(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
-#ifndef NQUEST
-							    , quest
-#endif
+
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 
 	auto your_deck = your_decks[0];
 if (g_TitanZeroDeckMode > 0)
 		{			
 			g_ProcessData = new ProcessData(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
-#ifndef NQUEST
-							    , quest
-#endif
+
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 			CoreScan(p, decks, all_cards,g_TitanZeroDeckMode);
 			EvaluatedResults results = { EvaluatedResults::first_type(enemy_decks.size()*your_decks.size()), 0 };
