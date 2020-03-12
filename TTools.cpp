@@ -46,7 +46,9 @@ void OutputCard(Card* pkCard,bool bSHowCopys)
 		case 6:
 			SetConsoleTextAttribute(hConsole, BLUE);							
 			std::cout << "[M]";
-		break;												
+		break;	
+		default:			
+		break;
 	};
 	SetConsoleTextAttribute(hConsole, WHITE);
 	switch (pkCard->m_faction)
@@ -68,6 +70,8 @@ void OutputCard(Card* pkCard,bool bSHowCopys)
 		break;
 		case Faction::progenitor:
 			SetConsoleTextAttribute(hConsole, CYAN);    
+		break;
+		default:			
 		break;
 	};	
 	std::stringstream TempStr("");	
@@ -197,8 +201,7 @@ void TuBenchmarkCardsOut(std::string pkzFileName,unsigned uiMode)
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, GREEN);
 	struct { bool operator()(cTCardStats* a, cTCardStats* b) const { return a->m_fWinPct > b->m_fWinPct; } } bScoresort;
-	std::sort(pkstats.begin(), pkstats.end(), bScoresort);
-	unsigned uiClass = 0;
+	std::sort(pkstats.begin(), pkstats.end(), bScoresort);	
 	std::stringstream filestr;
 	filestr << "data/" << pkzFileName;
 	std::ofstream myfile(filestr.str());
@@ -313,8 +316,7 @@ void TuReadCards()
 		while (owned_file && !owned_file.eof())
 		{
 			std::string card_spec;
-			getline(owned_file, card_spec);
-			unsigned num_line(0);
+			getline(owned_file, card_spec);			
 			std::stringstream  card_spec_stream(card_spec);
 			std::string  word;
 			card_spec_stream >> word;			
@@ -427,7 +429,9 @@ void OutputCardFile(std::ofstream &pkFile,Card* pkCard,bool bSHowCopys)
 			pkFile << "<td style=\"color:rgb(0,0,255);\">";			
 			pkFile << "[M]";	
 			pkFile << "</td>\n";
-		break;												
+		break;	
+			default:			
+		break;
 	};
 	
 	switch (pkCard->m_faction)
