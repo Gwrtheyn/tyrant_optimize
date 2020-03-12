@@ -49,6 +49,13 @@
 #define DEFINE_GLOBALS
 #include "algorithms.h"
 
+//---------------------- Modstuff ---------------------------------------
+#include "titan.h"
+
+#include <iostream>     // std::cout
+#include <functional>   // std::minus
+#include <numeric>      // std::accumulate
+
 // OpenMP Header
 #ifdef _OPENMP
 #include <omp.h>
@@ -1757,6 +1764,53 @@ FinalResults<long double> run(int argc, char** argv)
 			hash_to_ids = hash_to_ids_ddd_b64;
 			encode_deck = encode_deck_ddd_b64;
 		}
+		else if (strcmp(argv[argIndex], "TBMD") == 0)
+		{			
+			if(check_input_amount(argc,argv,argIndex,12))exit(1);			
+			guiThreads = atoi(argv[argIndex + 1]);
+			guiIter = atoi(argv[argIndex + 2]);
+			guiGlobalLimit = atoi(argv[argIndex + 3]);
+			guiDeckSize = atoi(argv[argIndex + 4]);
+			guiCardLimitY = atoi(argv[argIndex + 5]);
+			guiComLimitY = atoi(argv[argIndex + 6]);
+			guiDomLimitY = atoi(argv[argIndex + 7]);
+			guiIdLimit = atoi(argv[argIndex + 8]);
+			guiReCalcIter = atoi(argv[argIndex + 9]);
+			guiMaxList = atoi(argv[argIndex + 10]);
+			guiOutList = atoi(argv[argIndex + 11]);
+			guiOutIdMax = atoi(argv[argIndex + 12]);
+			argIndex += 12;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Benchmark_Fortress") == 0)
+		{
+			g_TitanZeroDeckMode = 6;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Benchmark_Dom") == 0)
+		{
+			g_TitanZeroDeckMode = 5;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Benchmark_Com") == 0)
+		{
+			g_TitanZeroDeckMode = 4;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Benchmark_Cards") == 0)
+		{
+			g_TitanZeroDeckMode = 3;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Get250Cards") == 0)
+		{
+			g_TitanZeroDeckMode = 2;
+		}
+		// g_TitanZeroDeckMode
+		else if (strcmp(argv[argIndex], "Gauntlet") == 0)
+		{
+			g_TitanZeroDeckMode = 1;
+		}
 		// Base Game Mode
 		else if (strcmp(argv[argIndex], "fight") == 0)
 		{
@@ -2987,7 +3041,18 @@ FinalResults<long double> run(int argc, char** argv)
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 
 	auto your_deck = your_decks[0];
-
+if (g_TitanZeroDeckMode > 0)
+		{			
+			g_ProcessData = new ProcessData(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
+#ifndef NQUEST
+			quest,
+#endif
+			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
+			CoreScan(p, decks, all_cards,g_TitanZeroDeckMode);
+			EvaluatedResults results = { EvaluatedResults::first_type(enemy_decks.size()*your_decks.size()), 0 };
+			fr = compute_score(results, p.factors);
+		} else
+	
 	for (auto op: opt_todo)
 	{
 		switch(std::get<2>(op))
