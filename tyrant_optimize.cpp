@@ -3036,12 +3036,16 @@ FinalResults<long double> run(int argc, char** argv)
 	}
 	Process p(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
 
+							    , quest
+
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 
 	auto your_deck = your_decks[0];
 if (g_TitanZeroDeckMode > 0)
 		{			
 			g_ProcessData = new ProcessData(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
+
+							    , quest
 
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 			CoreScan(p, decks, all_cards,g_TitanZeroDeckMode);
