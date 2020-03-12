@@ -454,6 +454,8 @@ void OutputCardFile(std::ofstream &pkFile,Card* pkCard,bool bSHowCopys)
 		case Faction::progenitor:			
 			pkFile << "<td style=\"color:rgb(0,255,255);\">";	
 		break;
+			default:			
+		break;
 	};	
 	std::stringstream TempStr("");	
 	int iSize = 22 - pkCard->m_name.size();	
@@ -484,8 +486,6 @@ void HtmlOutDeck(std::ofstream &pkFile,cTDeck& deck)
 	};			
 	pkFile << "</tr>\n";	
 };
-
-struct { bool operator()(cTCardStats a, cTCardStats b) const {return a.m_fWinPct > b.m_fWinPct;}} TCardStatssort;
 
 void cTDeckCore::MakeHtml(Cards& all_cards)
 {
