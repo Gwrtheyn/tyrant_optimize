@@ -476,5 +476,9 @@ extern std::string debug_str;
 #define _DEBUG_ASSERT(expr)
 #endif
 
+//---------------------- Modstuff ---------------------------------------
+extern unsigned g_TitanZeroDeckMode;
+#define __builtin_expect(e,c) (e)
+#define __builtin_unreachable() {};
 
 #endif
