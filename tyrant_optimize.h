@@ -282,3 +282,63 @@ public:
     void openmp_compare_reduction(EvaluatedResults & evaluated_results);
 #endif
 };
+
+//---------------------- Modstuff ---------------------------------------
+class ProcessData
+{
+public:
+	Process* m_pro;
+public:
+	unsigned m_num_threads_;
+	const Cards& m_cards_;
+	const Decks& m_decks_;
+	std::vector<Deck*> m_your_decks_;
+	std::vector<Deck*> m_enemy_decks_;
+	std::vector<long double> m_factors_;
+	gamemode_t m_gamemode_;
+#ifndef NQUEST
+	Quest& m_quest_;
+#endif
+	std::array<signed short, PassiveBGE::num_passive_bges>& m_your_bg_effects_;
+	std::array<signed short, PassiveBGE::num_passive_bges>& m_enemy_bg_effects_;
+	std::vector<SkillSpec>& m_your_bg_skills_;
+	std::vector<SkillSpec>& m_enemy_bg_skills_;
+public:
+	ProcessData(unsigned num_threads_, const Cards& cards_, const Decks& decks_, std::vector<Deck*> your_decks_, std::vector<Deck*> enemy_decks_, std::vector<long double> factors_, gamemode_t gamemode_,
+#ifndef NQUEST
+		Quest& quest_,
+#endif
+		std::array<signed short, PassiveBGE::num_passive_bges>& your_bg_effects_,
+		std::array<signed short, PassiveBGE::num_passive_bges>& enemy_bg_effects_,
+		std::vector<SkillSpec>& your_bg_skills_, std::vector<SkillSpec>& enemy_bg_skills_) :
+		m_num_threads_(num_threads_),
+		m_cards_(cards_),
+		m_decks_(decks_),
+		m_your_decks_(your_decks_),
+		m_enemy_decks_(enemy_decks_),
+		m_factors_(factors_),
+		m_gamemode_(gamemode_),
+#ifndef NQUEST
+		m_quest_(quest_),
+#endif
+		m_your_bg_effects_(your_bg_effects_),
+		m_enemy_bg_effects_(enemy_bg_effects_),
+		m_your_bg_skills_(your_bg_skills_),
+		m_enemy_bg_skills_(enemy_bg_skills_)
+	{
+		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,m_quest_,m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
+	};
+public:
+	Process* GetProcess()
+	{
+		return m_pro;
+	};
+	Process* GetNewProcess()
+	{
+		if (m_pro != NULL)
+			delete m_pro;
+		m_pro=new Process(m_num_threads_,m_cards_,m_decks_,m_your_decks_,m_enemy_decks_,m_factors_,m_gamemode_,m_quest_,m_your_bg_effects_,m_enemy_bg_effects_,m_your_bg_skills_,m_enemy_bg_skills_); 
+		return m_pro;
+	};
+};
+extern ProcessData*				g_ProcessData;
