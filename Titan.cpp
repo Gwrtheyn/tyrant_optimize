@@ -12,6 +12,9 @@
 #include <boost/tokenizer.hpp>
 #include "read.h"
 #include "tyrant_optimize.h"
+#include "TOutPut.h"
+#include "TTools.h"
+
 
 
 Process*				g_pkProc = NULL;
@@ -28,18 +31,19 @@ std::vector<Deck*>		g_EnemyDecksBackup;
 std::vector<Deck*>		g_BenchmarkDecks;
 
 unsigned					guiThreads = 14;
-unsigned					guiIter = 256;
+unsigned					guiIter = 32;
 unsigned					guiGlobalLimit = 16;
 unsigned					guiDeckSize = 8;
 unsigned					guiCardLimitY = 8;
 unsigned					guiComLimitY = 8;
 unsigned					guiDomLimitY = 8;
-unsigned					guiIdLimit = 4;
+unsigned					guiIdLimit = 2;
 unsigned					guiReCalcIter = 1024;
 unsigned					guiMaxList = 1024;
 unsigned					guiOutList = 25;
-unsigned					guiOutIdMax = 2;
+unsigned					guiOutIdMax = 1;
 
+Faction						gFactionLock = Faction::allfactions;
 
 
 void cTDeck::CapEnemyDeck(unsigned uiEnemyCap)
@@ -200,6 +204,9 @@ void cTDeckCore::FilterSort(unsigned uiId, unsigned uiCom, unsigned uiDom, unsig
 	std::map<Card*, unsigned>		m_GlobalMap;
 	unsigned uiPhaseSize = 0;
 	m_Phase[m_PageA].clear();	
+	unsigned lMax = m_Phase[m_PageB].size();
+	if (uiMax > 0)
+		lMax = uiMax;
 	std::sort(m_Phase[m_PageB].begin(), m_Phase[m_PageB].end(), wsort);		
 	for (unsigned i = 0; i < m_Phase[m_PageB].size(); i++)
 	{
@@ -232,7 +239,7 @@ void cTDeckCore::FilterSort(unsigned uiId, unsigned uiCom, unsigned uiDom, unsig
 						};
 					};
 				};				
-				if ((bAdd) && (uiPhaseSize < uiMax))
+				if ((bAdd) && (uiPhaseSize < lMax))
 				{
 					m_IdMap[uiBaseID]++;
 					m_PhaseMap[11][pkCom]++;
@@ -286,8 +293,17 @@ void cTDeckCore::DoBuildID(unsigned uiMode,unsigned uiIter, cTDeck& TempDeck)
 void cTDeckCore::DoCalcCardSlot(unsigned uiMode,unsigned uiIter, cTDeck& TempDeck, unsigned uiSlot)
 {	
 	m_Phase[m_PageA].clear();
-	for (unsigned i = 0; i < m_Phase[m_PageB].size(); i++)
-		m_Phase[m_PageA].push_back(m_Phase[m_PageB][i]);
+	{
+		for (unsigned i = 0; i < m_Phase[m_PageB].size(); i++)
+		{			
+			TempDeck = m_Phase[m_PageB][i];
+			TempDeck.m_pkCards[uiSlot] = NULL;
+			if (TempDeck.TiTanSim(uiMode,uiIter))
+			{
+				m_Phase[m_PageA].push_back(TempDeck);
+			};
+		};
+	}	
 	for (unsigned i = 0; i < m_Phase[m_PageB].size(); i++)
 	{
 		TempDeck = m_Phase[m_PageB][i];			
@@ -398,7 +414,7 @@ void cTDeckCore::TBuildDeckMode(std::string pkzGauntlet, unsigned uiMode, Cards&
 		TempDeck.m_pkCards[k] = NULL;
 	TempDeck.CapEnemyDeck(2);	
 	DoBuildID(uiMode,uiIter,TempDeck);
-	FilterSort(luiId, 0, 0, luiCard, luiCardGlobal, luiMax);		
+	FilterSort(luiId, 0, 0, luiCard, luiCardGlobal, luiMax*8);		
 	TempDeck.CapEnemyDeck(3);	
 	DoCalcCardSlot(uiMode,uiIter, TempDeck, 2);		
 	FilterSort(luiId, 0, 0, luiCard, luiCardGlobal, luiMax);	
@@ -408,8 +424,7 @@ void cTDeckCore::TBuildDeckMode(std::string pkzGauntlet, unsigned uiMode, Cards&
 	FilterSort(luiId, luiCom, luiDom, luiCard, luiCardGlobal, luiMax);	
 	for (unsigned k = 3; k < guiDeckSize; k++)
 	{
-		TempDeck.CapEnemyDeck(k+1);
-		DoReCalc(uiMode,uiIter, TempDeck);
+		TempDeck.CapEnemyDeck(k+1);		
 		DoCalcCardSlot(uiMode,uiIter, TempDeck, k);
 		FilterSort(luiId, luiCom, luiDom, luiCard, luiCardGlobal, luiMax);
 	}/**/
@@ -641,6 +656,23 @@ void cTDeckCore::TBenchmarkFortress(std::string pkzGauntlet, unsigned uiMode, Ca
 	unsigned uiIter = guiIter;		
 	cTDeck TempDeck;
 	TempDeck.CapEnemyDeck(10);
+	
+	if (uiMode == 0)
+	{
+		for (unsigned i(0); i < g_ProcessData->m_enemy_decks_.size(); ++i)
+		{
+			g_ProcessData->m_enemy_decks_[i]->fortress_cards.clear();
+			g_ProcessData->m_enemy_decks_[i]->add_forts("Minefield,Minefield");
+		};
+	}else if (uiMode == 1)
+	{
+		for (unsigned i(0); i < g_ProcessData->m_enemy_decks_.size(); ++i)
+		{
+			g_ProcessData->m_enemy_decks_[i]->fortress_cards.clear();
+			g_ProcessData->m_enemy_decks_[i]->add_forts("Death Factory,Death Factory");
+		};
+	};			
+
 	TempDeck.m_pkCom = m_pkCommander[0];
 	TempDeck.m_pkDom = m_pkDominion[0];
 	for (unsigned k = 0; k < 10; k++)
@@ -649,12 +681,15 @@ void cTDeckCore::TBenchmarkFortress(std::string pkzGauntlet, unsigned uiMode, Ca
 
 	unsigned uiListSize = m_pkFortress[uiMode].size();	
 	for (unsigned uia = 0; uia < uiListSize; uia++)
+	for (unsigned uib = 0; uib < uiListSize; uib++)
 	{
-		Card* pkCard=m_pkFortress[uiMode][uia];
-		if (pkCard != NULL)
+		Card* pkCard1=m_pkFortress[uiMode][uia];
+		Card* pkCard2=m_pkFortress[uiMode][uib];
+		if ((pkCard1 != NULL)&&(pkCard2 != NULL))
 		{
-			cTCardStats* pkStats = &m_BenchmarkStack[pkCard];
-			if (pkStats)
+			cTCardStats* pkStats1 = &m_BenchmarkStack[pkCard1];
+			cTCardStats* pkStats2 = &m_BenchmarkStack[pkCard2];
+			if ((pkStats1)&&(pkStats2))
 			{
 				cTDeck BaseDeck;
 				cTDeck StackDeck;
@@ -674,13 +709,21 @@ void cTDeckCore::TBenchmarkFortress(std::string pkzGauntlet, unsigned uiMode, Ca
 						TempDeck.m_pkFortress[1][1] = NULL;
 						if (TempDeck.TiTanSim(uiMode,uiIter))
 						{
-							cTCardStats* pkStatsBase = &m_BenchmarkBase[pkCard];
-							if (pkStatsBase)
+							cTCardStats* pkStatsBase1 = &m_BenchmarkBase[pkCard1];
+							if (pkStatsBase1)
 							{
-								pkStatsBase->m_pkCard = pkCard;
-								pkStatsBase->m_uiWins += TempDeck.m_uiWins;
-								pkStatsBase->m_uiDraws += TempDeck.m_uiDraws;
-								pkStatsBase->m_uiLosses += TempDeck.m_uiLosses;
+								pkStatsBase1->m_pkCard = pkCard1;
+								pkStatsBase1->m_uiWins += TempDeck.m_uiWins;
+								pkStatsBase1->m_uiDraws += TempDeck.m_uiDraws;
+								pkStatsBase1->m_uiLosses += TempDeck.m_uiLosses;
+							};
+							cTCardStats* pkStatsBase2 = &m_BenchmarkBase[pkCard2];
+							if (pkStatsBase2)
+							{
+								pkStatsBase2->m_pkCard = pkCard2;
+								pkStatsBase2->m_uiWins += TempDeck.m_uiWins;
+								pkStatsBase2->m_uiDraws += TempDeck.m_uiDraws;
+								pkStatsBase2->m_uiLosses += TempDeck.m_uiLosses;
 							};
 							BaseDeck = TempDeck;							
 							TempDeck.ResetData();
@@ -688,17 +731,22 @@ void cTDeckCore::TBenchmarkFortress(std::string pkzGauntlet, unsigned uiMode, Ca
 							TempDeck.m_pkCom = (Card*)pkTestDeck->commander;
 							TempDeck.m_pkDom = (Card*)pkTestDeck->alpha_dominion;
 														
-							TempDeck.m_pkFortress[uiMode][0] = pkCard;
-							TempDeck.m_pkFortress[uiMode][1] = pkCard;
+							TempDeck.m_pkFortress[uiMode][0] = pkCard1;
+							TempDeck.m_pkFortress[uiMode][1] = pkCard2;
 							
 							for (unsigned k = 0; k < pkTestDeck->cards.size(); k++)
 								TempDeck.m_pkCards[k] = (Card*)pkTestDeck->cards[k];							
 							if (TempDeck.TiTanSim(uiMode,uiIter))
 							{
-								pkStats->m_pkCard = pkCard;
-								pkStats->m_uiWins += TempDeck.m_uiWins;
-								pkStats->m_uiDraws += TempDeck.m_uiDraws;
-								pkStats->m_uiLosses += TempDeck.m_uiLosses;
+								pkStats1->m_pkCard = pkCard1;
+								pkStats1->m_uiWins += TempDeck.m_uiWins;
+								pkStats1->m_uiDraws += TempDeck.m_uiDraws;
+								pkStats1->m_uiLosses += TempDeck.m_uiLosses;
+
+								pkStats2->m_pkCard = pkCard2;
+								pkStats2->m_uiWins += TempDeck.m_uiWins;
+								pkStats2->m_uiDraws += TempDeck.m_uiDraws;
+								pkStats2->m_uiLosses += TempDeck.m_uiLosses;
 							};							
 						};
 					};
@@ -719,7 +767,6 @@ void CoreScan(Process& proc, Decks& decks, Cards& all_cards, unsigned uiMode)
 	g_pkProc = g_ProcessData->GetProcess();
 	g_pkDecks = &decks;
 	g_pkAllCards = &all_cards;
-	
 	if (uiMode == 6)//TTBenchmarkFortress
 	{
 		g_DeckCore.m_BenchmarkBase.clear();
@@ -735,11 +782,11 @@ void CoreScan(Process& proc, Decks& decks, Cards& all_cards, unsigned uiMode)
 		g_CalcIter = g_Iter + 1;
 		g_Iter = 0;
 		g_DeckCore.TBenchmarkFortress("TUTitan_Def", 0, all_cards);
-		TuBenchmarkCardsOut("FortressOff.txt",3);
+		TuBenchmarkCardsOut("FortressOff",3);
 		g_DeckCore.m_BenchmarkBase.clear();
 		g_DeckCore.m_BenchmarkStack.clear();
 		g_DeckCore.TBenchmarkFortress("TUTitan_Off", 1, all_cards);		
-		TuBenchmarkCardsOut("FortressDef.txt",3);
+		TuBenchmarkCardsOut("FortressDef",3);
 		std::cout << "\n";		
 	}else	
 	if ((uiMode == 4)||(uiMode == 5)) //TTBenchmark Com Dom
@@ -762,9 +809,9 @@ void CoreScan(Process& proc, Decks& decks, Cards& all_cards, unsigned uiMode)
 		g_DeckCore.TBenchmarkComDomMode("TUTitan_Def", 0, all_cards,bDom);
 		g_DeckCore.TBenchmarkComDomMode("TUTitan_Off", 1, all_cards,bDom);		
 		if (uiMode == 4)
-			TuBenchmarkCardsOut("BenchmarkCommander.txt",1);
+			TuBenchmarkCardsOut("BenchmarkCommander",1);
 		if (uiMode == 5)
-			TuBenchmarkCardsOut("BenchmarkAlphaDominion.txt",1);
+			TuBenchmarkCardsOut("BenchmarkAlphaDominion",1);
 		std::cout << "\n";		
 	}else
 	if (uiMode == 3)//TTBenchmark
@@ -784,7 +831,7 @@ void CoreScan(Process& proc, Decks& decks, Cards& all_cards, unsigned uiMode)
 		g_DeckCore.TBenchmarkMode("TUTitan_Def", 0, all_cards);
 		g_DeckCore.TBenchmarkMode("TUTitan_Off", 1, all_cards);
 		std::cout << "\n";	
-		TuBenchmarkCardsOut("BenchmarkCards.txt",0);
+		TuBenchmarkCardsOut("BenchmarkCards",0);
 		std::cout << "\n";		
 	}else
 	if (uiMode==2)//TTBestCard
@@ -809,15 +856,15 @@ void CoreScan(Process& proc, Decks& decks, Cards& all_cards, unsigned uiMode)
 		{
 			g_DeckCore.m_Phase[g_DeckCore.m_PageB].push_back(g_DeckCore.m_SimData[0][i]);
 		};
-		g_DeckCore.OutPutDeckList();
+		//g_DeckCore.OutPutDeckList();
 		std::cout << "\n";
 		g_DeckCore.m_Phase[g_DeckCore.m_PageB].clear();
 		for (unsigned i = 0; i < g_DeckCore.m_SimData[1].size(); i++)
 		{
 			g_DeckCore.m_Phase[g_DeckCore.m_PageB].push_back(g_DeckCore.m_SimData[1][i]);
 		};
-		g_DeckCore.OutPutDeckList();
+		//g_DeckCore.OutPutDeckList();
 		std::cout << "\n";
-		g_DeckCore.MakeHtml(all_cards);
+		g_DeckCore.MakeGauntlet(all_cards);
 	};
 };
