@@ -10,25 +10,6 @@
 #include "cards.h"
 #include "deck.h"
 
-enum {
-    BLACK             = 0,
-    DARKBLUE          = FOREGROUND_BLUE,
-    DARKGREEN         = FOREGROUND_GREEN,
-    DARKCYAN          = FOREGROUND_GREEN | FOREGROUND_BLUE,
-    DARKRED           = FOREGROUND_RED,
-    DARKMAGENTA       = FOREGROUND_RED | FOREGROUND_BLUE,
-    DARKYELLOW        = FOREGROUND_RED | FOREGROUND_GREEN,
-    DARKGRAY          = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
-    GRAY              = FOREGROUND_INTENSITY,
-    BLUE              = FOREGROUND_INTENSITY | FOREGROUND_BLUE,
-    GREEN             = FOREGROUND_INTENSITY | FOREGROUND_GREEN,
-    CYAN              = FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE,
-    RED               = FOREGROUND_INTENSITY | FOREGROUND_RED,
-    MAGENTA           = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_BLUE,
-    YELLOW            = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN,
-    WHITE             = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
- };
-
 
 class Process;
 extern Process*					g_pkProc;
@@ -53,6 +34,7 @@ extern unsigned					guiReCalcIter;
 extern unsigned					guiMaxList;
 extern unsigned					guiOutList;
 extern unsigned					guiOutIdMax;
+extern Faction					gFactionLock;
 
 class cTDeck
 {
@@ -154,7 +136,9 @@ public:
 	unsigned				m_uiCopys;
 	float					m_fWinPct;
 	unsigned				m_uiInstance;
-	float                   m_fScore;			
+	float                   m_fScore;
+	//float                   m_fBaseScore;
+	//float                   m_fSkillScore[3];
 	cTCardStats() :
         m_pkCard(NULL),
 		m_uiMapId(0),
@@ -260,7 +244,7 @@ public:
 		};
 		return false;
 	};		
-	void MakeHtml(Cards& all_cards);
+	void MakeGauntlet(Cards& all_cards);
 	unsigned GetBaseIds(cTDeck* pkDeck);
 	
 	void FilterSort(unsigned uiId, unsigned uiCom, unsigned uiDom, unsigned uiCard, unsigned uiCardGlobal, unsigned uiMax);	
@@ -274,23 +258,10 @@ public:
 	void TBenchmarkMode(std::string pkzGauntlet, unsigned uiMode, Cards& all_cards);	
 	void TBenchmarkComDomMode(std::string pkzGauntlet, unsigned uiMode, Cards& all_cards, bool bDom);
 	void TBenchmarkFortress(std::string pkzGauntlet, unsigned uiMode, Cards& all_cards);
-
-	void OutPutDeck(cTDeck& TempDeck);
-	void OutPutDeckList();
 };
 
 extern cTDeckCore				g_DeckCore;
 
-
-void InitTimes();
-void TuBenchmarkCardsOut(std::string pkzFileName,unsigned uiMode);
-void TuReadCards();
-void SimOutput(cTDeck* pkctDeck);
-void OutputCard(Card* pkCard, bool bSHowCopys);
-Card* FReadCard(std::string sData, Cards& all_cards);
-Deck* tfind_deck(Decks& decks, const Cards& all_cards, std::string deck_name);
-void UpdateScore(Cards& all_cards);
-void OutPutDeck(Deck* pkDeck);
 void CoreScan(Process& proc,Decks& decks, Cards& all_cards, unsigned uiMode);
 
 #endif //TITAN_H_INCLUDED
