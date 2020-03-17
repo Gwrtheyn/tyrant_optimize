@@ -49,7 +49,7 @@
 #define DEFINE_GLOBALS
 #include "algorithms.h"
 
-//---------------------- Modstuff ---------------------------------------
+
 #include "titan.h"
 
 #include <iostream>     // std::cout
@@ -221,7 +221,7 @@ void init()
 	for (int i=0; i < Fix::num_fixes;++i) fixes[i]=false;
 
     //recommended/default fixes
-	fixes[Fix::enhance_early] = true;
+	//fixes[Fix::enhance_early] = true;
 	fixes[Fix::revenge_on_death] = true;
 	fixes[Fix::death_from_bge] = true;
 }
@@ -1749,7 +1749,7 @@ FinalResults<long double> run(int argc, char** argv)
 	{
 
 		// Codec
-		if (strcmp(argv[argIndex], "ext_b64") == 0)
+		/*if (strcmp(argv[argIndex], "ext_b64") == 0)
 		{
 			hash_to_ids = hash_to_ids_ext_b64;
 			encode_deck = encode_deck_ext_b64;
@@ -1764,7 +1764,7 @@ FinalResults<long double> run(int argc, char** argv)
 			hash_to_ids = hash_to_ids_ddd_b64;
 			encode_deck = encode_deck_ddd_b64;
 		}
-		else if (strcmp(argv[argIndex], "TBMD") == 0)
+		else */if (strcmp(argv[argIndex], "TBMD") == 0)
 		{			
 			if(check_input_amount(argc,argv,argIndex,12))exit(1);			
 			guiThreads = atoi(argv[argIndex + 1]);
@@ -1778,8 +1778,43 @@ FinalResults<long double> run(int argc, char** argv)
 			guiReCalcIter = atoi(argv[argIndex + 9]);
 			guiMaxList = atoi(argv[argIndex + 10]);
 			guiOutList = atoi(argv[argIndex + 11]);
-			guiOutIdMax = atoi(argv[argIndex + 12]);
+			guiOutIdMax = atoi(argv[argIndex + 12]); 								
+			if (std::get<1>(opt_todo.back()) < 10) { opt_num_threads = 1; }
+			gamemode = surge;
+			optimization_mode = OptimizationMode::war;
+			opt_num_threads= guiThreads;
+			opt_your_strategy = DeckStrategy::ordered;
+			opt_do_optimization = true;
+			opt_multi_optimization = true;
 			argIndex += 12;
+		}
+		else if (strcmp(argv[argIndex], "Imperial") == 0)
+		{
+			gFactionLock = Faction::imperial;
+		}
+		else if (strcmp(argv[argIndex], "Raider") == 0)
+		{
+			gFactionLock = Faction::raider;
+		}
+		else if (strcmp(argv[argIndex], "Bloodthirsty") == 0)
+		{
+			gFactionLock = Faction::bloodthirsty;
+		}
+		else if (strcmp(argv[argIndex], "Xeno") == 0)
+		{
+			gFactionLock = Faction::xeno;
+		}
+		else if (strcmp(argv[argIndex], "Righteous") == 0)
+		{
+			gFactionLock = Faction::righteous;
+		}
+		else if (strcmp(argv[argIndex], "Progenitor") == 0)
+		{
+			gFactionLock = Faction::progenitor;
+		}
+		else if (strcmp(argv[argIndex], "AllFactions") == 0)
+		{
+			gFactionLock = Faction::allfactions;
 		}
 		// g_TitanZeroDeckMode
 		else if (strcmp(argv[argIndex], "Benchmark_Fortress") == 0)
@@ -1802,7 +1837,7 @@ FinalResults<long double> run(int argc, char** argv)
 			g_TitanZeroDeckMode = 3;
 		}
 		// g_TitanZeroDeckMode
-		else if (strcmp(argv[argIndex], "Get250Cards") == 0)
+		else if (strcmp(argv[argIndex], "GetBestCards") == 0)
 		{
 			g_TitanZeroDeckMode = 2;
 		}
@@ -2992,9 +3027,9 @@ FinalResults<long double> run(int argc, char** argv)
 
 		for (unsigned i(0); i < enemy_decks.size(); ++i)
 		{
-			auto enemy_deck = enemy_decks[i];
-			std::cout << "Enemy's Deck:" << enemy_decks_factors[i] << ": "
-				<< (debug_print > 0 ? enemy_deck->long_description() : enemy_deck->medium_description()) << std::endl;
+			//auto enemy_deck = enemy_decks[i];
+			//std::cout << "Enemy's Deck:" << enemy_decks_factors[i] << ": "
+				//<< (debug_print > 0 ? enemy_deck->long_description() : enemy_deck->medium_description()) << std::endl;
 		}
 		for (unsigned bg_effect = PassiveBGE::no_bge; bg_effect < PassiveBGE::num_passive_bges; ++bg_effect)
 		{
@@ -3038,26 +3073,24 @@ FinalResults<long double> run(int argc, char** argv)
 #ifndef NQUEST
 			quest,
 #endif
-
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 
 	auto your_deck = your_decks[0];
-if (g_TitanZeroDeckMode > 0)
+
+	if (g_TitanZeroDeckMode > 0)
 		{			
 			g_ProcessData = new ProcessData(opt_num_threads, all_cards, decks, proc_decks, enemy_decks, factors, gamemode,
-
 #ifndef NQUEST
 			quest,
 #endif
-
 			opt_bg_effects[0], opt_bg_effects[1], opt_bg_skills[0], opt_bg_skills[1]);
 			CoreScan(p, decks, all_cards,g_TitanZeroDeckMode);
 			EvaluatedResults results = { EvaluatedResults::first_type(enemy_decks.size()*your_decks.size()), 0 };
 			fr = compute_score(results, p.factors);
 		} else
-	
+
 	for (auto op: opt_todo)
-	{
+	{		
 		switch(std::get<2>(op))
 		{
 			case noop:
@@ -3179,6 +3212,12 @@ int main(int argc,char** argv)
 	boost::timer::auto_cpu_timer t;
 #endif
 	start_time = std::chrono::system_clock::now();
+
+	HWND window;	
+	window = FindWindowA("ConsoleWindowClass", NULL);
+	ShowWindow(window, 1);	
+	if( window != NULL ){ MoveWindow(window ,1,5 ,1650,200 ,TRUE); }
+
 	if (argc == 2 && strcmp(argv[1], "-version") == 0)
 	{
 		std::cout << "Tyrant Unleashed Optimizer " << TYRANT_OPTIMIZER_VERSION << std::endl;
