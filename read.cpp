@@ -195,7 +195,7 @@ void parse_card_spec(const Cards& all_cards, const std::string& card_spec, unsig
         card_id = card_it->second->m_id;
         if (all_cards.ambiguous_names.count(simple_name))
         {
-            std::cerr << "WARNING: There are multiple cards named " << card_name << " in cards.xml. [" << card_id << "] is used.\n";
+            //std::cerr << "WARNING: There are multiple cards named " << card_name << " in cards.xml. [" << card_id << "] is used.\n";
         }
     }
     else if(card_id_iter != simple_name.end())
@@ -576,4 +576,3 @@ unsigned read_bge_aliases(std::unordered_map<std::string, std::string> & bge_ali
     }
     return(0);
 }
-
